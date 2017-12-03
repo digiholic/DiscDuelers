@@ -10,34 +10,9 @@ public class SwipeManager : MonoBehaviour
     [SerializeField]
     float minSwipeLength = 0.5f;
 
-    [Tooltip("If true, a swipe is counted when the min swipe length is reached. If false, a swipe is counted when the touch/click ends.")]
-    [SerializeField]
-    bool triggerSwipeAtMinLength = false;
-
-    [Tooltip("Whether to detect eight or four cardinal directions")]
-    [SerializeField]
-    bool useEightDirections = false;
-
     #endregion
 
-    const float eightDirAngle = 0.906f;
-    const float fourDirAngle = 0.5f;
-    const float defaultDPI = 72f;
-    const float dpcmFactor = 2.54f;
-
-    static Dictionary<Swipe, Vector2> cardinalDirections = new Dictionary<Swipe, Vector2>()
-    {
-        { Swipe.Up,         CardinalDirection.Up                 },
-        { Swipe.Down,         CardinalDirection.Down             },
-        { Swipe.Right,         CardinalDirection.Right             },
-        { Swipe.Left,         CardinalDirection.Left             },
-        { Swipe.UpRight,     CardinalDirection.UpRight             },
-        { Swipe.UpLeft,     CardinalDirection.UpLeft             },
-        { Swipe.DownRight,     CardinalDirection.DownRight         },
-        { Swipe.DownLeft,     CardinalDirection.DownLeft         }
-    };
-
-    public delegate void OnSwipeDetectedHandler(Swipe swipeDirection, Vector2 swipeVelocity);
+    public delegate void OnSwipeDetectedHandler(SwipeData swipe);
 
     static OnSwipeDetectedHandler _OnSwipeDetected;
     public static event OnSwipeDetectedHandler OnSwipeDetected
@@ -45,7 +20,6 @@ public class SwipeManager : MonoBehaviour
         add
         {
             _OnSwipeDetected += value;
-            autoDetectSwipes = true;
         }
         remove
         {
@@ -54,31 +28,20 @@ public class SwipeManager : MonoBehaviour
     }
 
     public static Vector2 swipeVelocity;
-
-    static float dpcm;
-    static float swipeStartTime;
-    static float swipeEndTime;
-    static bool autoDetectSwipes = true;
+    
     static bool swipeEnded;
-    static Swipe swipeDirection;
-    static Vector2 firstPressPos;
-    static Vector2 secondPressPos;
     static SwipeManager instance;
 
+    public static SwipeData currentSwipe;
 
     void Awake()
     {
         instance = this;
-        float dpi = (Screen.dpi == 0) ? defaultDPI : Screen.dpi;
-        dpcm = dpi / dpcmFactor;
     }
 
     void Update()
     {
-        if (autoDetectSwipes)
-        {
-            DetectSwipe();
-        }
+        DetectSwipe();
     }
 
     /// <summary>
@@ -94,52 +57,14 @@ public class SwipeManager : MonoBehaviour
             {
                 return;
             }
-
-            Vector2 currentSwipe = secondPressPos - firstPressPos;
-            float swipeCm = currentSwipe.magnitude / dpcm;
-
-            // Check the swipe is long enough to count as a swipe (not a touch, etc)
-            if (swipeCm < instance.minSwipeLength)
-            {
-                // Swipe was not long enough, abort
-                if (!instance.triggerSwipeAtMinLength)
-                {
-                    if (Application.isEditor)
-                    {
-                        Debug.Log("[SwipeManager] Swipe was not long enough.");
-                    }
-
-                    swipeDirection = Swipe.None;
-                }
-
-                return;
-            }
-
-            swipeEndTime = Time.time;
-            swipeVelocity = currentSwipe * (swipeEndTime - swipeStartTime);
-            swipeDirection = GetSwipeDirByTouch(currentSwipe);
             swipeEnded = true;
 
             if (_OnSwipeDetected != null)
             {
-                _OnSwipeDetected(swipeDirection, swipeVelocity);
+                _OnSwipeDetected(currentSwipe);
             }
         }
-        else
-        {
-            swipeDirection = Swipe.None;
-        }
     }
-
-    public static bool IsSwiping() { return swipeDirection != Swipe.None; }
-    public static bool IsSwipingRight() { return IsSwipingDirection(Swipe.Right); }
-    public static bool IsSwipingLeft() { return IsSwipingDirection(Swipe.Left); }
-    public static bool IsSwipingUp() { return IsSwipingDirection(Swipe.Up); }
-    public static bool IsSwipingDown() { return IsSwipingDirection(Swipe.Down); }
-    public static bool IsSwipingDownLeft() { return IsSwipingDirection(Swipe.DownLeft); }
-    public static bool IsSwipingDownRight() { return IsSwipingDirection(Swipe.DownRight); }
-    public static bool IsSwipingUpLeft() { return IsSwipingDirection(Swipe.UpLeft); }
-    public static bool IsSwipingUpRight() { return IsSwipingDirection(Swipe.UpRight); }
 
     #region Helper Functions
 
@@ -152,24 +77,15 @@ public class SwipeManager : MonoBehaviour
             // Swipe/Touch started
             if (t.phase == TouchPhase.Began)
             {
-                firstPressPos = t.position;
-                swipeStartTime = Time.time;
+                currentSwipe = new SwipeData(t.position, Time.time);
                 swipeEnded = false;
                 // Swipe/Touch ended
             }
             else if (t.phase == TouchPhase.Ended)
             {
-                secondPressPos = t.position;
+                currentSwipe.FinishSwipe(t.position, Time.time);
                 return true;
                 // Still swiping/touching
-            }
-            else
-            {
-                // Could count as a swipe if length is long enough
-                if (instance.triggerSwipeAtMinLength)
-                {
-                    return true;
-                }
             }
         }
 
@@ -181,72 +97,61 @@ public class SwipeManager : MonoBehaviour
         // Swipe/Click started
         if (Input.GetMouseButtonDown(0))
         {
-            firstPressPos = (Vector2)Input.mousePosition;
-            swipeStartTime = Time.time;
+            currentSwipe = new SwipeData(Input.mousePosition, Time.time);
             swipeEnded = false;
             // Swipe/Click ended
         }
         else if (Input.GetMouseButtonUp(0))
-        {
-            secondPressPos = (Vector2)Input.mousePosition;
+        { 
+            currentSwipe.FinishSwipe(Input.mousePosition, Time.time);
             return true;
             // Still swiping/clicking
-        }
-        else
-        {
-            // Could count as a swipe if length is long enough
-            if (instance.triggerSwipeAtMinLength)
-            {
-                return true;
-            }
         }
 
         return false;
     }
-
-    static bool IsDirection(Vector2 direction, Vector2 cardinalDirection)
-    {
-        var angle = instance.useEightDirections ? eightDirAngle : fourDirAngle;
-        return Vector2.Dot(direction, cardinalDirection) > angle;
-    }
-
-    static Swipe GetSwipeDirByTouch(Vector2 currentSwipe)
-    {
-        currentSwipe.Normalize();
-        var swipeDir = cardinalDirections.FirstOrDefault(dir => IsDirection(currentSwipe, dir.Value));
-        return swipeDir.Key;
-    }
-
-    static bool IsSwipingDirection(Swipe swipeDir)
-    {
-        DetectSwipe();
-        return swipeDirection == swipeDir;
-    }
-
     #endregion
 }
 
-class CardinalDirection
+public class SwipeData
 {
-    public static readonly Vector2 Up = new Vector2(0, 1);
-    public static readonly Vector2 Down = new Vector2(0, -1);
-    public static readonly Vector2 Right = new Vector2(1, 0);
-    public static readonly Vector2 Left = new Vector2(-1, 0);
-    public static readonly Vector2 UpRight = new Vector2(1, 1);
-    public static readonly Vector2 UpLeft = new Vector2(-1, 1);
-    public static readonly Vector2 DownRight = new Vector2(1, -1);
-    public static readonly Vector2 DownLeft = new Vector2(-1, -1);
-}
+    public static float minSwipeLength = 5f;
+    public static float maxSwipeLength = 100f;
 
-public enum Swipe
-{
-    None,
-    Up,
-    Down,
-    Left,
-    Right,
-    UpLeft,
-    UpRight,
-    DownLeft,
-    DownRight
-};
+    public Vector2 swipeStartPos;
+    public Vector2 swipeEndPos;
+    public float startTime;
+    public float endTime;
+    public bool done = false;
+
+    public SwipeData(Vector2 startPos, float time)
+    {
+        swipeStartPos = startPos;
+        startTime = time;
+    }
+
+    public void FinishSwipe(Vector2 endPos, float time)
+    {
+        swipeEndPos = endPos;
+        endTime = time;
+        done = true;
+    }
+
+    public Vector2 GetSwipe()
+    {
+        Vector2 swipe = (swipeEndPos - swipeStartPos) / 30;
+        float time = (endTime - startTime);
+        Vector2 result = swipe / time;
+        //Debug.Log("SWIPE MAGNITUDE: "+swipe.magnitude);
+        //Debug.Log("RESULT MAGNITUDE: " + result.magnitude);
+        if (result.magnitude < minSwipeLength) result = Vector2.zero; //If we're too small, make it zero
+        if (result.magnitude > maxSwipeLength) result = result.normalized * maxSwipeLength; //If we're too big, make it maximum
+        //Debug.Log("CLAMPED MAGNITUDE: " + result.magnitude);
+        return result;
+    }
+
+    public Vector2 GetSwipeNormalized()
+    {
+        return GetSwipe().normalized;
+    }
+}
