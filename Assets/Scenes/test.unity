@@ -1226,7 +1226,7 @@ MonoBehaviour:
     discs:
     - {fileID: 934356409}
   currentPlayerTurn: 0
-  activeDisc: {fileID: 0}
+  activeDisc: {fileID: 2047928918}
 --- !u!1 &1841025753
 GameObject:
   m_ObjectHideFlags: 0
