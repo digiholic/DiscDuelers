@@ -94,9 +94,11 @@ public class SwipeManager : MonoBehaviour
 
     static bool GetMouseInput()
     {
+        /*
         // Swipe/Click started
         if (Input.GetMouseButtonDown(0))
         {
+            Debug.Log("Mouse detected");
             currentSwipe = new SwipeData(Input.mousePosition, Time.time);
             swipeEnded = false;
             // Swipe/Click ended
@@ -107,7 +109,7 @@ public class SwipeManager : MonoBehaviour
             return true;
             // Still swiping/clicking
         }
-
+        */
         return false;
     }
     #endregion

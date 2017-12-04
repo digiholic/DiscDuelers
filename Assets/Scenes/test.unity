@@ -227,7 +227,7 @@ RectTransform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 559028868}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 298, y: -179.5, z: 0}
+  m_LocalPosition: {x: 232, y: -127.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1142761967}
@@ -485,7 +485,7 @@ GameObject:
   - component: {fileID: 934356411}
   - component: {fileID: 934356410}
   - component: {fileID: 934356407}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Cylinder (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -675,7 +675,7 @@ RectTransform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1142761963}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 328, y: 209.5, z: 0}
+  m_LocalPosition: {x: 262, y: 157.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1492799652}
@@ -696,7 +696,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 1227336637}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Discs
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -995,7 +995,7 @@ RectTransform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1492799651}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -298, y: -179.5, z: 0}
+  m_LocalPosition: {x: -232, y: -127.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1142761967}
@@ -1381,7 +1381,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 1948955762}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Terrain
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1415,7 +1415,7 @@ GameObject:
   - component: {fileID: 2047928914}
   - component: {fileID: 2047928913}
   - component: {fileID: 2047928919}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Cylinder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1504,8 +1504,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ownerPlayer: 0
   life: 5
-  attacks: 2
-  moves: 2
+  attacks: 5
+  moves: 5
   ratio: 0.1
   attack_waiting: 0
   move_waiting: 0
@@ -1535,7 +1535,7 @@ GameObject:
   - component: {fileID: 2067538977}
   - component: {fileID: 2067538976}
   - component: {fileID: 2067538980}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: TerrainWall
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -19,6 +19,12 @@ public class Disc : MonoBehaviour {
     private bool falling = false;
     private Vector3 lastMousePos;
     private Vector3 exitPosition;
+    private Dictionary<DamageSource, bool> damageSources = new Dictionary<DamageSource, bool>()
+    {
+        {DamageSource.CRASH, true },
+        {DamageSource.STRIKE, true },
+        {DamageSource.FALL, true }
+    };
 
     // Use this for initialization
     void Start () {
@@ -58,7 +64,40 @@ public class Disc : MonoBehaviour {
     {
         if (other.gameObject.name == "Killbox")
         {
-            Die();
+            TakeDamage(1,DamageSource.FALL);
+            if (life > 0) Die(true);
+        }
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Terrain"))
+        {
+            if (!moving) //The only time terrain is safe is during movement
+            {
+                TakeDamage(1, DamageSource.CRASH);
+            }
+        }
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Discs"))
+        {
+            if (moving)
+            {
+                TakeDamage(1,DamageSource.STRIKE);
+            }
+            if (attacking)
+            {
+                collision.gameObject.GetComponent<Disc>().TakeDamage(1, DamageSource.STRIKE);
+            }
+        }
+    }
+
+    void TakeDamage(int amount, DamageSource source)
+    {
+        if (damageSources[source])
+        {
+            damageSources[source] = false;
+            life -= amount;
+            if (life == 0) Die(false);
         }
     }
 
@@ -93,12 +132,14 @@ public class Disc : MonoBehaviour {
 
     private void StartTurn()
     {
-
+        
     }
 
     private void EndTurn()
     {
-
+        damageSources[DamageSource.CRASH] = true;
+        damageSources[DamageSource.STRIKE] = true;
+        damageSources[DamageSource.FALL] = true;
     }
 
     private void Activate()
@@ -133,15 +174,18 @@ public class Disc : MonoBehaviour {
             GameController.EndTurn();
     }
 
-    private void Die()
+    private void Die(bool respawn)
     {
         ParticleSystem blast = Instantiate(deathBlast);
         blast.transform.position = transform.position;
         rend.enabled = false;
-        IEnumerator respawn = Respawn();
         rb.velocity = Vector3.zero;
         rb.useGravity = false;
-        StartCoroutine(respawn);
+        if (respawn)
+        {
+            IEnumerator respawnMethod = Respawn();
+            StartCoroutine(respawnMethod);
+        }
     }
 
     private IEnumerator Respawn()
@@ -153,4 +197,11 @@ public class Disc : MonoBehaviour {
         rb.useGravity = true;
         rb.velocity = Vector3.zero;
     }
+}
+
+public enum DamageSource
+{
+    CRASH,
+    STRIKE,
+    FALL
 }
