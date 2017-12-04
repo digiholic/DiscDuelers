@@ -3,24 +3,35 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class GameController : MonoBehaviour {
-    public List<Player> players;
-    public int currentPlayerTurn;
+    public static GameController instance;
 
+    public List<Disc> discs;
+    public Queue<Disc> turnOrder = new Queue<Disc>();
     public Disc activeDisc;
 
-	// Use this for initialization
-	void Start () {
-		
-	}
+    private void Awake()
+    {
+        instance = this;
+    }
+
+    // Use this for initialization
+    void Start () {
+        foreach (Disc d in discs)
+            turnOrder.Enqueue(d);
+        activeDisc = turnOrder.Dequeue();
+    }
 	
 	// Update is called once per frame
 	void Update () {
 		
 	}
 
-    public static void EndTurn()
+    public void EndTurn()
     {
-
+        Disc oldDisc = activeDisc;
+        turnOrder.Enqueue(oldDisc); //Put this disc into the back of the turn order
+        activeDisc = turnOrder.Dequeue();
+        activeDisc.SendMessage("StartTurn");
     }
 
     public void MoveButtonPressed()
@@ -31,6 +42,16 @@ public class GameController : MonoBehaviour {
     public void AttackButtonPressed()
     {
         activeDisc.SendMessage("Attack");
+    }
+
+    public static void BroadcastEndRound()
+    {
+        instance.BroadcastMessage("EndRound");
+    }
+
+    public static void BroadcastEndTurn()
+    { 
+        instance.BroadcastMessage("EndTurn");
     }
 }
 
