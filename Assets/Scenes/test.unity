@@ -1391,7 +1391,7 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 116
-  m_CollisionDetection: 1
+  m_CollisionDetection: 2
 --- !u!23 &934356411
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1589,7 +1589,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerNum: 1
+  attackButton: {fileID: 0}
   attackCount: {fileID: 502529274}
+  moveButton: {fileID: 0}
   moveCount: {fileID: 897300785}
 --- !u!1 &1227336636
 GameObject:
@@ -2572,7 +2574,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerNum: 0
+  attackButton: {fileID: 0}
   attackCount: {fileID: 1402661329}
+  moveButton: {fileID: 0}
   moveCount: {fileID: 517328620}
 --- !u!1 &1841025753
 GameObject:
@@ -2992,7 +2996,7 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 116
-  m_CollisionDetection: 1
+  m_CollisionDetection: 2
 --- !u!23 &2047928914
 MeshRenderer:
   m_ObjectHideFlags: 0

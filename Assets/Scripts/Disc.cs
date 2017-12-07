@@ -3,24 +3,30 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Disc : MonoBehaviour {
-    public int ownerPlayer;
-    public int life = 5;
-    public int maxAttacks = 2, maxMoves = 2;
+    private static int STOP_FRAMES = 5;
 
+    public int ownerPlayer;
+    
     public float ratio = 0.1f;
     public bool attack_waiting, move_waiting;
     public ParticleSystem deathBlast;
 
-    public int attacks, moves;
-
     private Rigidbody rb;
     private Renderer rend;
 
+    private int stillFrames = 0;
     private bool attacking, moving;
     private bool doneMotion;
     private bool falling = false;
     private Vector3 lastMousePos;
     private Vector3 exitPosition;
+
+
+    public int life = 5;
+    public int maxAttacks = 2, maxMoves = 2;
+    public int attacks, moves;
+
+
     private Dictionary<DamageSource, bool> damageSources = new Dictionary<DamageSource, bool>()
     {
         {DamageSource.CRASH, true },
@@ -48,8 +54,12 @@ public class Disc : MonoBehaviour {
         //If the done flag isn't set, but motion has stopped, set doneMotion
         if (!doneMotion && rb.velocity.magnitude < 0.01)
         {
-            GameController.BroadcastEndRound();
-            EndMotion();
+            stillFrames += 1;
+            if (stillFrames > STOP_FRAMES)
+            {
+                GameController.BroadcastEndRound();
+                EndMotion();
+            }
         }
 
         //Fall animation
@@ -57,7 +67,7 @@ public class Disc : MonoBehaviour {
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, 0, 90.0f), Time.deltaTime * 5);
 	}
 
-    void TakeDamage(int amount, DamageSource source)
+    public void TakeDamage(int amount, DamageSource source)
     {
         if (damageSources[source])
         {
@@ -89,12 +99,13 @@ public class Disc : MonoBehaviour {
                 attack_waiting = false;
                 move_waiting = false;
                 doneMotion = false;
+                stillFrames = 0;
                 CameraController.EnableMouseControl(); //We can move the map again
             }
         }
     }
 
-    private void Die(bool respawn)
+    public void Die(bool respawn)
     {
         ParticleSystem blast = Instantiate(deathBlast);
         blast.transform.position = transform.position;
@@ -110,7 +121,7 @@ public class Disc : MonoBehaviour {
 
     private IEnumerator Respawn()
     {
-        yield return new WaitForSeconds(3);
+        yield return new WaitForSeconds(1);
         rend.enabled = true;
         transform.position = exitPosition;
         falling = false;
@@ -120,11 +131,21 @@ public class Disc : MonoBehaviour {
     }
 
     #region Function Hooks
-    private void StartTurn()
-    {
-        attacks = maxAttacks;
-        moves = maxMoves;
-    }
+    public delegate void VoidEvent();
+    public event VoidEvent StartTurnEvent;
+    public event VoidEvent EndRoundEvent;
+    public event VoidEvent EndTurnEvent;
+
+    public delegate void ReadSwipe(SwipeData swipe);
+    public event ReadSwipe BasicAttackEvent;
+    public event ReadSwipe BasicMoveEvent;
+
+    public delegate void DiscEvent(Disc d);
+    public event DiscEvent OnAttackHit;
+    public event DiscEvent OnGetAttacked;
+
+    public event VoidEvent OnCrash;
+    public event VoidEvent OnFall;
 
     private void Attack()
     {
@@ -148,24 +169,12 @@ public class Disc : MonoBehaviour {
     {
 
     }
-
-    private void OnAttackWithDisc(Disc d)
-    {
-
-    }
-
-    private void OnGetAttacked(Disc d)
-    {
-        TakeDamage(1, DamageSource.STRIKE);
-    }
-
-    private void OnCrashWithTerrain()
-    {
-        TakeDamage(1, DamageSource.CRASH);
-    }
+    
+    #endregion
 
     private void EndMotion()
     {
+        Debug.Log("Ending Motion");
         attacking = false;
         moving = false;
         doneMotion = true;
@@ -173,20 +182,12 @@ public class Disc : MonoBehaviour {
             GameController.BroadcastEndTurn();
     }
 
-    private void EndRound()
+    public void UnlockDamageSources()
     {
         damageSources[DamageSource.CRASH] = true;
         damageSources[DamageSource.STRIKE] = true;
         damageSources[DamageSource.FALL] = true;
     }
-
-    private void EndTurn()
-    {
-        damageSources[DamageSource.CRASH] = true;
-        damageSources[DamageSource.STRIKE] = true;
-        damageSources[DamageSource.FALL] = true;
-    }
-    #endregion
 
     #region Collision Functions
     void OnTriggerExit(Collider other)
@@ -204,15 +205,14 @@ public class Disc : MonoBehaviour {
     {
         if (other.gameObject.name == "Killbox")
         {
-            TakeDamage(1, DamageSource.FALL);
-            if (life > 0) Die(true);
+            OnFall();
         }
     }
 
     private void OnCollisionEnter(Collision collision)
-    {
+    { 
         if (collision.gameObject.layer == LayerMask.NameToLayer("Terrain"))
-        {
+        { 
             if (!moving) //The only time terrain is safe is during movement
                 OnCrashWithTerrain();
         }
@@ -220,9 +220,11 @@ public class Disc : MonoBehaviour {
         {
             Disc other = collision.gameObject.GetComponent<Disc>();
             if (moving)
-                OnGetAttacked(other);
-            if (attacking)
             {
+                OnGetAttacked(other);
+            }
+            if (attacking)
+            { 
                 other.SendMessage("OnGetAttacked", this);
                 OnAttackWithDisc(other);
             }
@@ -230,6 +232,44 @@ public class Disc : MonoBehaviour {
     }
 
     #endregion
+
+
+    public void DefaultStartTurn()
+    {
+        attacks = maxAttacks;
+        moves = maxMoves;
+    }
+
+    public void DefaultEndRound()
+    {
+        UnlockDamageSources();
+    }
+
+    public void DefaultEndTurn()
+    {
+        UnlockDamageSources();
+    }
+
+    public void DefaultOnGetAttacked(Disc d)
+    {
+        Debug.Log(gameObject.name + " has been attacked by " + d.gameObject.name);
+        TakeDamage(1, DamageSource.STRIKE);
+    }
+
+    public void DefaultOnCrash()
+    {
+        TakeDamage(1, DamageSource.CRASH);
+    }
+
+    public void DefaultOnFall()
+    {
+        TakeDamage(1, DamageSource.FALL);
+        if (life > 0) Die(true);
+        if (GameController.instance.activeDisc == this)
+        {
+            GameController.BroadcastEndTurn();
+        }
+    }
 }
 
 public enum DamageSource

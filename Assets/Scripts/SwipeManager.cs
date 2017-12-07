@@ -98,7 +98,6 @@ public class SwipeManager : MonoBehaviour
         // Swipe/Click started
         if (Input.GetMouseButtonDown(0))
         {
-            Debug.Log("Mouse detected");
             currentSwipe = new SwipeData(Input.mousePosition, Time.time);
             swipeEnded = false;
             // Swipe/Click ended

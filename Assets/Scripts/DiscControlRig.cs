@@ -5,7 +5,9 @@ using UnityEngine.UI;
 
 public class DiscControlRig : MonoBehaviour {
     public int playerNum;
+    public Image attackButton;
     public Text attackCount;
+    public Image moveButton;
     public Text moveCount;
 
 	// Use this for initialization
