@@ -9,7 +9,7 @@ public class SwipeManager : MonoBehaviour
     [Tooltip("Min swipe distance (inches) to register as swipe")]
     [SerializeField]
     float minSwipeLength = 0.5f;
-
+    public static float swipeRatio = 1.0f;
     #endregion
 
     public delegate void OnSwipeDetectedHandler(SwipeData swipe);
@@ -147,6 +147,7 @@ public class SwipeData
         //Debug.Log("RESULT MAGNITUDE: " + result.magnitude);
         if (result.magnitude < minSwipeLength) result = Vector2.zero; //If we're too small, make it zero
         if (result.magnitude > maxSwipeLength) result = result.normalized * maxSwipeLength; //If we're too big, make it maximum
+        result *= SwipeManager.swipeRatio;
         //Debug.Log("CLAMPED MAGNITUDE: " + result.magnitude);
         return result;
     }
