@@ -12,7 +12,7 @@ public class DiscControlRig : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		
+        
 	}
 	
 	// Update is called once per frame
@@ -20,6 +20,8 @@ public class DiscControlRig : MonoBehaviour {
         if (chara.ReadyForOption)
         {
             ShowChildren();
+            strikeButton.ChangeText(chara.strikes.ToString());
+            moveButtons.ChangeText(chara.moves.ToString());
         }
         else
         {

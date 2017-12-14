@@ -47,7 +47,10 @@ public class Character : MonoBehaviour {
 
         moveOptions.Add(new DiscSwipeOption(DefaultBasicMove,1,0,OptionType.MOVE));
         strikeOptions.Add(new DiscSwipeOption(DefaultBasicStrike, 0, 1, OptionType.STRIKE));
-        
+
+        strikes = maxStrikes;
+        moves = maxMoves;
+
         if (playerMat != null)
         {
             GetComponent<Renderer>().material = playerMat;

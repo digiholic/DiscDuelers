@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Disc : MonoBehaviour {
     #region Component Accessors
+    [SerializeField]
     private ParticleSystem deathBlast;
     private Rigidbody rb;
     private Renderer rend;
