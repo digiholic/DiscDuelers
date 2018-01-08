@@ -4,12 +4,14 @@ using UnityEngine;
 
 public class GameController : MonoBehaviour {
     public static GameController instance;
-    public static bool RequestEndRound = false;
-    public static bool RequestEndTurn = false;
+    public bool roundEndRequested= false;
+    public bool turnEndRequested = false;
 
-    public List<Player> players;
+    public List<PlayerController> players;
+
     public List<GameObject> RoundLock = new List<GameObject>();
     public List<GameObject> TurnLock = new List<GameObject>();
+    public Queue<Disc> turnOrder = new Queue<Disc>();
 
     public Disc activeDisc;
 
@@ -18,24 +20,34 @@ public class GameController : MonoBehaviour {
         instance = this;
     }
 
-    // Use this for initialization
-    void Start () {
-        
+    void Start()
+    {
+        StartRound();
     }
-	
+
 	// Update is called once per frame
 	void Update () {
-	    if (RequestEndRound && (RoundLock.Count == 0))
+	    if (roundEndRequested && (RoundLock.Count == 0))
         {
-            RequestEndRound = false;
-            //Fire end round message
+            roundEndRequested = false;
+            BroadcastMessage("EndRound");
+            StartRound();
         }
-        if (RequestEndTurn && (TurnLock.Count == 0))
+        if (turnEndRequested && (TurnLock.Count == 0))
         {
-            RequestEndTurn = false;
-            //Fire end turn message
+            turnEndRequested = false;
+            BroadcastMessage("EndTurn");
+            Disc old = activeDisc;
+            activeDisc = turnOrder.Dequeue();
+            turnOrder.Enqueue(old);
+            StartRound();
         }
-	}
+    }
+
+    void StartRound()
+    {
+        activeDisc.SendMessage("Ready");
+    }
 
     /// <summary>
     /// This method is called when an object is requesting that the round doesn't end. For example, when playing an animation or still in motion.
@@ -75,6 +87,22 @@ public class GameController : MonoBehaviour {
     public static void ReleaseTurnLock(GameObject go)
     {
         instance.TurnLock.Remove(go);
+    }
+
+    /// <summary>
+    /// Signal to the game controller that you want the round to end
+    /// </summary>
+    public static void RequestEndRound()
+    {
+        instance.roundEndRequested = true;
+    }
+
+    /// <summary>
+    /// Signal to the game controller that you want the turn to end
+    /// </summary>
+    public static void RequestEndTurn()
+    {
+        instance.turnEndRequested = true;
     }
 }
 

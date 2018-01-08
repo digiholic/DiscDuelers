@@ -56,11 +56,6 @@ public class Character : MonoBehaviour {
             GetComponent<Renderer>().material = playerMat;
         }
 	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
 
     public void RefreshMotions()
     {
@@ -94,6 +89,11 @@ public class Character : MonoBehaviour {
         ReadyForOption = false;
     }
 
+    public void Ready()
+    {
+        ReadyForOption = true;
+    }
+
     #region Default Hooks
     public void DefaultStartTurn()
     {
@@ -106,8 +106,10 @@ public class Character : MonoBehaviour {
         motion = MotionType.IDLE;
         disc.inMotion = false;
         if (moves == 0 && strikes == 0)
-            GameController.RequestEndTurn = true;
-
+        {
+            Debug.Log("ending turn");
+            GameController.RequestEndTurn();
+        }
         UnlockDamageSources();
     }
 
@@ -129,7 +131,7 @@ public class Character : MonoBehaviour {
         if (life > 0) disc.Die(true);
         if (GameController.instance.activeDisc == disc)
         {
-            GameController.RequestEndTurn = true;
+            GameController.RequestEndTurn();
         }
     }
 

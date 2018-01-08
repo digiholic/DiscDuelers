@@ -34,8 +34,11 @@ public class Disc : MonoBehaviour {
     private Vector3 lastMousePos;
     private Vector3 exitPosition;
 
+    public bool active;
+    public Vector3 clickStartPos;
+    public GameObject slingMarker;
 
-    private static int STOP_FRAMES = 5;
+    private static int STOP_FRAMES = 2;
 
     // Use this for initialization
     void Start () {
@@ -52,15 +55,13 @@ public class Disc : MonoBehaviour {
         {
             transform.rotation = Quaternion.LookRotation(rb.velocity) * uprightDirection;    //Rotate to face the right direction
             GameController.LockRound(gameObject);                                            //The round can't end while we're moving
-            GameController.LockTurn(gameObject);                                             //The turn can't end while we're moving
             stillFrames = 0;                                                                 //If we're moving, reset the stillFrames counter
         }
         else
         {
             //transform.rotation = uprightDirection;                                         //Rotate back to default direction
             GameController.ReleaseRoundLock(gameObject);                                     //It is now safe to end the round
-            GameController.ReleaseTurnLock(gameObject);                                      //It is now safe to end the turn
-
+            
             //If the motion flag is still on, we need to check if it's safe to request the end of the round.
             //Since there will be brief periods of zero motion during bounces and collisions, we have to make sure we hit a threshold.
             //The threshold is defined as a static variable above.
@@ -69,16 +70,15 @@ public class Disc : MonoBehaviour {
                 stillFrames += 1;
                 if (stillFrames > STOP_FRAMES)
                 {
-                    GameController.RequestEndRound = true;
+                    GameController.RequestEndRound();
                 }
             }
         }
 
-        
         //Fall animation
         if (falling)
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, 0, 90.0f), Time.deltaTime * 5);
-	}
+    }
 
     public void AddForce(Vector3 force)
     {
@@ -112,6 +112,12 @@ public class Disc : MonoBehaviour {
         rb.useGravity = true;
         rb.velocity = Vector3.zero;
         rb.constraints = RigidbodyConstraints.FreezeRotation | RigidbodyConstraints.FreezePositionY;
+    }
+
+    void EndRound()
+    {
+        Debug.Log("Round Ending");
+        EndRoundEvent();
     }
 
     #region Collision Functions

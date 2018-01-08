@@ -94,7 +94,6 @@ public class SwipeManager : MonoBehaviour
 
     static bool GetMouseInput()
     {
-        /*
         // Swipe/Click started
         if (Input.GetMouseButtonDown(0))
         {
@@ -108,7 +107,6 @@ public class SwipeManager : MonoBehaviour
             return true;
             // Still swiping/clicking
         }
-        */
         return false;
     }
     #endregion
