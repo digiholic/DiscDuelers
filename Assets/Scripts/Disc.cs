@@ -3,26 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Disc : MonoBehaviour {
+    private static int STOP_FRAMES = 2;
+
     #region Component Accessors
     [SerializeField]
     private ParticleSystem deathBlast;
     private Rigidbody rb;
     private Renderer rend;
-    #endregion
-
-    #region Function Hooks
-    public delegate void VoidEvent();
-    public event VoidEvent StartTurnEvent;
-    public event VoidEvent EndRoundEvent;
-    public event VoidEvent EndTurnEvent;
-
-    public delegate void DiscEvent(Disc d);
-    public event DiscEvent OnStrikeHit;
-    public event DiscEvent OnGetAttacked;
-    public event DiscEvent OnDiscCollision;
-
-    public event VoidEvent OnCrash;
-    public event VoidEvent OnFall;
     #endregion
 
     public int ownerPlayer;
@@ -36,9 +23,9 @@ public class Disc : MonoBehaviour {
 
     public bool active;
     public Vector3 clickStartPos;
-    public GameObject slingMarker;
+    //public GameObject slingMarker;
 
-    private static int STOP_FRAMES = 2;
+    public CharacterData charData;
 
     // Use this for initialization
     void Start () {
@@ -54,7 +41,7 @@ public class Disc : MonoBehaviour {
         if (rb.velocity.magnitude >= 0.01)
         {
             transform.rotation = Quaternion.LookRotation(rb.velocity) * uprightDirection;    //Rotate to face the right direction
-            GameController.LockRound(gameObject);                                            //The round can't end while we're moving
+            GameController.LockRound(gameObject, "Disc is in motion");                       //The round can't end while we're moving
             stillFrames = 0;                                                                 //If we're moving, reset the stillFrames counter
         }
         else
@@ -70,7 +57,7 @@ public class Disc : MonoBehaviour {
                 stillFrames += 1;
                 if (stillFrames > STOP_FRAMES)
                 {
-                    GameController.RequestEndRound();
+                    GameController.RequestEndRound(gameObject);
                 }
             }
         }
@@ -94,8 +81,7 @@ public class Disc : MonoBehaviour {
         rb.useGravity = false;
         if (respawn)
         {
-            GameController.LockRound(gameObject);
-            GameController.LockTurn(gameObject);
+            GameController.LockRound(gameObject, "Disc is respawning after fall.");
             IEnumerator respawnMethod = Respawn();
             StartCoroutine(respawnMethod);
         }
@@ -114,10 +100,10 @@ public class Disc : MonoBehaviour {
         rb.constraints = RigidbodyConstraints.FreezeRotation | RigidbodyConstraints.FreezePositionY;
     }
 
-    void EndRound()
+    void EndRound(Disc roundPlayer)
     {
         Debug.Log("Round Ending");
-        EndRoundEvent();
+        charData.endRoundEvent.Execute(this, roundPlayer.gameObject);
     }
 
     #region Collision Functions
@@ -136,7 +122,7 @@ public class Disc : MonoBehaviour {
     {
         if (other.gameObject.name == "Killbox")
         {
-            OnFall();
+            charData.onFallEvent.Execute(this, other);
         }
     }
 
@@ -144,12 +130,13 @@ public class Disc : MonoBehaviour {
     { 
         if (collision.gameObject.layer == LayerMask.NameToLayer("Terrain"))
         { 
-            OnCrash();
+            charData.onCrashEvent.Execute(this, collision);
         }
         if (collision.gameObject.layer == LayerMask.NameToLayer("Discs"))
         {
             Disc other = collision.gameObject.GetComponent<Disc>();
-            OnDiscCollision(other);
+            //OnDiscCollision(other);
+            //TODO
         }
     }
     #endregion

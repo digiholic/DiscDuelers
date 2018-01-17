@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23bc31adbb273cc48ae1ea622491302f, type: 3}
+  m_Name: KehrolynData
+  m_EditorClassIdentifier: 
+  characterName: Kherolyn
+  discTex: {fileID: 2800000, guid: 9ca60ec38e266604aa96653b7cd8747c, type: 3}
+  characterPortrait: {fileID: 2800000, guid: beccfbe318e5861459b7dee8561626bb, type: 3}
+  maxMoves: 4
+  maxStrikes: 0
+  effect: No damage from terrain collision.
+  startTurnEvent: {fileID: 11400000, guid: c34f9576e477f574db8767f4478d36d3, type: 2}
+  startRoundEvent: {fileID: 11400000, guid: 3fe60925e0d6d5b4c9160f493412995d, type: 2}
+  endTurnEvent: {fileID: 11400000, guid: 79e0cff07dfc2e848aec13b3ee7a309e, type: 2}
+  endRoundEvent: {fileID: 11400000, guid: 834aab47edd2ce64ca50f14cb1112fdc, type: 2}
+  onCrashEvent: {fileID: 11400000, guid: d03532bd145eb3d458b3877aee310be7, type: 2}
+  onFallEvent: {fileID: 11400000, guid: b20ce332e542e8c4d9193cdc1c136c7f, type: 2}
+  onGetStruckEvent: {fileID: 11400000, guid: 502364003e5622e47a28d35fb359ff4f, type: 2}
+  onStrikeEvent: {fileID: 11400000, guid: 0612188c006728d43ad6d800ecc665fc, type: 2}

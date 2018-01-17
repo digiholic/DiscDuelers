@@ -6,19 +6,17 @@ public class Character : MonoBehaviour {
     public Disc disc;
 
     public int life = 5;
-    public int maxStrikes = 2;
-    public int maxMoves = 2;
-
+    
     [System.NonSerialized]
     public int strikes;
     [System.NonSerialized]
     public int moves;
-    
+
     public MotionType motion = MotionType.IDLE;
     public List<DiscSwipeOption> moveOptions = new List<DiscSwipeOption>();
     public List<DiscSwipeOption> strikeOptions = new List<DiscSwipeOption>();
 
-    public Material playerMat;
+    public CharacterData charData;
 
     #region GUI variables
     //These variables let the GUI know what to display
@@ -37,30 +35,21 @@ public class Character : MonoBehaviour {
     // Use this for initialization
     void Start () {
         disc = GetComponent<Disc>();
-
-        disc.StartTurnEvent += DefaultStartTurn;
-        disc.EndRoundEvent += DefaultEndRound;
-        disc.EndTurnEvent += DefaultEndTurn;
-        disc.OnDiscCollision += DefaultDiscCollision;
-        disc.OnCrash += DefaultOnCrash;
-        disc.OnFall += DefaultOnFall;
-
+        
         moveOptions.Add(new DiscSwipeOption(DefaultBasicMove,1,0,OptionType.MOVE));
         strikeOptions.Add(new DiscSwipeOption(DefaultBasicStrike, 0, 1, OptionType.STRIKE));
 
-        strikes = maxStrikes;
-        moves = maxMoves;
+        strikes = charData.maxStrikes;
+        moves = charData.maxMoves;
 
-        if (playerMat != null)
-        {
-            GetComponent<Renderer>().material = playerMat;
-        }
+        GetComponent<Renderer>().material.mainTexture = charData.discTex;
+        charData.startTurnEvent.Execute(disc, null);
 	}
 
     public void RefreshMotions()
     {
-        strikes = maxStrikes;
-        moves = maxMoves;
+        strikes = charData.maxStrikes;
+        moves = charData.maxMoves;
     }
 
     public void TakeDamage(int amount, DamageSource source)
@@ -108,7 +97,7 @@ public class Character : MonoBehaviour {
         if (moves == 0 && strikes == 0)
         {
             Debug.Log("ending turn");
-            GameController.RequestEndTurn();
+            GameController.RequestEndTurn(gameObject);
         }
         UnlockDamageSources();
     }
@@ -131,7 +120,7 @@ public class Character : MonoBehaviour {
         if (life > 0) disc.Die(true);
         if (GameController.instance.activeDisc == disc)
         {
-            GameController.RequestEndTurn();
+            GameController.RequestEndTurn(gameObject);
         }
     }
 

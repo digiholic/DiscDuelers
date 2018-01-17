@@ -9,8 +9,8 @@ public class GameController : MonoBehaviour {
 
     public List<PlayerController> players;
 
-    public List<GameObject> RoundLock = new List<GameObject>();
-    public List<GameObject> TurnLock = new List<GameObject>();
+    public List<Lock> RoundLock = new List<Lock>();
+    public List<Lock> TurnLock = new List<Lock>();
     public Queue<Disc> turnOrder = new Queue<Disc>();
 
     public Disc activeDisc;
@@ -54,11 +54,11 @@ public class GameController : MonoBehaviour {
     /// The object is added on to the list so that we can see what's holding up the turn order.
     /// </summary>
     /// <param name="go">The game object requesting the round be held</param>
-    public static void LockRound(GameObject go)
+    public static void LockRound(GameObject go, string message)
     {
-        instance.RoundLock.Add(go);
+        instance.RoundLock.Add(new Lock(go,message));
+        Debug.Log(go.name + " is locking the round: " + message);
     }
-
     /// <summary>
     /// This method is called when an object that was previously requesting the round not end is now okay with it ending. This is called when whatever operation
     /// it was trying to do clears up.
@@ -66,19 +66,25 @@ public class GameController : MonoBehaviour {
     /// <param name="go">The game object that no longer requests the round stay open</param>
     public static void ReleaseRoundLock(GameObject go)
     {
-        instance.RoundLock.Remove(go);
+        foreach (Lock l in instance.RoundLock)
+        {
+            if (l.lockSource == go)
+            {
+                instance.RoundLock.Remove(l);
+                Debug.Log(go.name + " is allowing the round to end");
+            }
+        }
     }
-
     /// <summary>
     /// This method is called when an object is requesting that the turn doesn't end. For example, when playing an animation or still in motion.
     /// The object is added on to the list so that we can see what's holding up the turn order.
     /// </summary>
     /// <param name="go">The game object requesting the turn be held</param>
-    public static void LockTurn(GameObject go)
+    public static void LockTurn(GameObject go, string message)
     {
-        instance.TurnLock.Add(go);
+        instance.TurnLock.Add(new Lock(go,message));
+        Debug.Log(go.name + " is locking the turn: " + message);
     }
-
     /// <summary>
     /// This method is called when an object that was previously requesting the turn not end is now okay with it ending. This is called when whatever operation
     /// it was trying to do clears up.
@@ -86,23 +92,31 @@ public class GameController : MonoBehaviour {
     /// <param name="go">The game object that no longer requests the turn stay open</param>
     public static void ReleaseTurnLock(GameObject go)
     {
-        instance.TurnLock.Remove(go);
+        foreach (Lock l in instance.TurnLock)
+        {
+            if (l.lockSource == go)
+            {
+                instance.TurnLock.Remove(l);
+                Debug.Log(go.name + " is allowing the turn to end");
+            }       
+        }
     }
 
     /// <summary>
     /// Signal to the game controller that you want the round to end
     /// </summary>
-    public static void RequestEndRound()
+    public static void RequestEndRound(GameObject requestor)
     {
         instance.roundEndRequested = true;
+        Debug.Log(requestor.name + " is requesting the round ends");
     }
-
     /// <summary>
     /// Signal to the game controller that you want the turn to end
     /// </summary>
-    public static void RequestEndTurn()
+    public static void RequestEndTurn(GameObject requestor)
     {
         instance.turnEndRequested = true;
+        Debug.Log(requestor.name + " is requesting the turn ends");
     }
 }
 
@@ -111,4 +125,17 @@ public class Player
 {
     public int playerNum;
     public List<Disc> discs;
+}
+
+[System.Serializable]
+public class Lock
+{
+    public GameObject lockSource;
+    public string lockMessage;
+
+    public Lock(GameObject _lockSource, string _lockMessage)
+    {
+        lockSource = _lockSource;
+        lockMessage = _lockMessage;
+    }
 }
