@@ -25,6 +25,9 @@ public class Disc : MonoBehaviour {
     public Vector3 clickStartPos;
     //public GameObject slingMarker;
 
+    public int life;
+    public int strikes;
+    public int moves;
     public CharacterData charData;
 
     // Use this for initialization
@@ -70,6 +73,24 @@ public class Disc : MonoBehaviour {
     public void AddForce(Vector3 force)
     {
         rb.AddForce(force, ForceMode.Impulse);
+    }
+
+    public AttackData Attack(Disc other, Collision col)
+    {
+        AttackData data = new AttackData();
+        data.collisionPoint = col.contacts[0].point;
+        data.source = this;
+        data.target = other;
+        data.damage = 1;
+        data.collisionVelocity = rb.velocity;
+
+        return data;
+    }
+
+    public void GetAttacked(AttackData data)
+    {
+        //health -= data.damage;
+
     }
 
     public void Die(bool respawn)
@@ -154,4 +175,14 @@ public enum MotionType
     IDLE,
     STRIKE,
     MOVE
+}
+
+
+public struct AttackData
+{
+    public Disc source;
+    public Disc target;
+    public Vector3 collisionPoint;
+    public int damage;
+    public Vector3 collisionVelocity;
 }
