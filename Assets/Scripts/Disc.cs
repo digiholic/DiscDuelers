@@ -34,6 +34,8 @@ public class Disc : MonoBehaviour {
     void Start () {
         rb = GetComponent<Rigidbody>();
         rend = GetComponent<Renderer>();
+
+        rend.material.mainTexture = charData.discTex;
     }
 
     // Update is called once per frame
